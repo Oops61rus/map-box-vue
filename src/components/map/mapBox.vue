@@ -3,7 +3,7 @@
     <div id="map"></div>
 
 
-    <map-portal-buttons @onClickButton="toCity" />
+    <map-portal-buttons @onClickButton="toCity"/>
     <map-layers
       :checkboxList="checkboxList"
       @onChange="onChangeCheckbox"
@@ -27,8 +27,8 @@ export default defineComponent({
       checkboxList: [
         { id: 'poi-pinball', checked: false, name: 'Pinball machines' },
         { id: 'poi-opensense', checked: false, name: 'Sensors' },
-      ]
-    }
+      ],
+    };
   },
   methods: {
     ...mapActions(['fetchOpenSensePoints', 'fetchPinballPoints']),
@@ -39,24 +39,42 @@ export default defineComponent({
       this.map().jumpTo(city);
     },
     onChangeCheckbox({ id, checked }) {
-      this.map().showLayout(id, checked)
-    }
+      if (id === this.checkboxList[0].id && checked && !this.getIsPinballPointsLoaded) {
+        this.fetchPinballPoints();
+        return;
+      }
+      if (id === this.checkboxList[1].id && checked && !this.getIsOpenSensePointsLoaded) {
+        this.fetchOpenSensePoints();
+        return;
+      }
+
+      this.map().showLayout(id, checked);
+    },
   },
   computed: {
-    ...mapGetters(['getOpenSensePoints', 'getPinballPoints']),
+    ...mapGetters([
+      'getOpenSensePoints',
+      'getPinballPoints',
+      'getIsOpenSensePointsLoaded',
+      'getIsPinballPointsLoaded',
+      'getOpenSensePointsLength',
+      'getPinballPointsLength',
+    ]),
+  },
+  watch: {
+    getPinballPointsLength(length) {
+      if (length) {
+        this.map().addPoints(this.getPinballPoints, this.checkboxList[0].id);
+      }
+    },
+    getOpenSensePointsLength(length) {
+      if (length) {
+        this.map().addPoints(this.getOpenSensePoints, this.checkboxList[1].id);
+      }
+    },
   },
   mounted() {
     window['map'] = new MapBoxHelper();
-
-    Promise.all([this.fetchOpenSensePoints(), this.fetchPinballPoints()])
-      .then(() => {
-        const places = {
-          type: 'FeatureCollection',
-          features: [...this.getOpenSensePoints, ...this.getPinballPoints]
-        }
-
-        this.map().addSource(places)
-      })
   },
 });
 </script>

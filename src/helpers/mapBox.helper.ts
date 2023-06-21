@@ -17,6 +17,12 @@ export class MapBoxHelper {
   defaultCity: CityListT = 'Portland';
   defaultCenter: LngLatLike = coordinates[this.defaultCity];
   defaultZoom: number = 12;
+  points: { type: string, features: GeoPointModelI<GeoPointPropertiesOpenSenseI | GeoPointPropertiesPinballMapI>[] } = {
+    type: 'FeatureCollection',
+    features: []
+  }
+  sourceName: string = 'places'
+  layersList: string[] = []
 
   constructor() {
     this.map = new maplibregl.Map({
@@ -26,7 +32,10 @@ export class MapBoxHelper {
       zoom: this.defaultZoom,
     });
 
-    this.addStyles();
+    this.map.on('load', () => {
+      this.addStyles();
+      this.addSource();
+    })
   }
 
   private addStyles(): void {
@@ -36,25 +45,20 @@ export class MapBoxHelper {
     document.head.appendChild(link);
   }
 
-  private createMarkerLayout(name: string, color: string = ''): HTMLDivElement {
-    const el = document.createElement('div');
-    el.className = `marker ${color}`;
-
-    const child = document.createElement('div');
-    child.className = 'marker-text';
-    child.textContent = name;
-
-    el.appendChild(child);
-
-    return el;
+  private addSource() {
+    this.map.addSource(this.sourceName, {
+      type: 'geojson',
+      data: this.points,
+    });
   }
 
-  public addMarker({ properties, geometry, color }: any): void {
-    const element = this.createMarkerLayout(properties.name, color);
+  private recreateSource() {
+    this.layersList.forEach(layerID => {
+      this.map.removeLayer(layerID)
+    })
+    this.map.removeSource(this.sourceName)
 
-    new maplibregl.Marker(element)
-      .setLngLat(geometry.coordinates)
-      .addTo(this.map);
+    this.addSource()
   }
 
   public jumpTo(city: CityListT) {
@@ -64,17 +68,16 @@ export class MapBoxHelper {
     });
   }
 
-  public addSource(points: any) {
-    this.map.addSource('places', {
-      type: 'geojson',
-      data: points,
-    });
+  public addLayer(layerID: string) {
+    this.recreateSource()
 
-    points.features.forEach((feature: GeoPointModelI<GeoPointPropertiesOpenSenseI> | GeoPointModelI<GeoPointPropertiesPinballMapI>) => {
+    this.points.features.forEach((feature: GeoPointModelI<GeoPointPropertiesOpenSenseI | GeoPointPropertiesPinballMapI>) => {
       const { type, color } = feature.properties;
       const layerID = 'poi-' + type;
 
       if (!this.map.getLayer(layerID)) {
+        this.layersList.push(layerID)
+
         this.map.addLayer({
           id: layerID,
           type: 'symbol',
@@ -94,9 +97,9 @@ export class MapBoxHelper {
           },
         });
       }
-
-      this.showLayout(layerID, false);
     });
+
+    this.showLayout(layerID, true)
   }
 
   public showLayout(layerId: string, isChecked: boolean) {
@@ -105,5 +108,10 @@ export class MapBoxHelper {
       'visibility',
       isChecked ? 'visible' : 'none',
     );
+  }
+
+  public addPoints(points: GeoPointModelI<GeoPointPropertiesOpenSenseI | GeoPointPropertiesPinballMapI>[], layerID: string) {
+    this.points.features.push(...points)
+    this.addLayer(layerID)
   }
 }
