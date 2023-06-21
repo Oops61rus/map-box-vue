@@ -86,7 +86,7 @@ export class MapBoxHelper {
             'icon-image': 'circle' + '_15',
           },
           paint: {
-            'image-color': color,
+            'icon-color': color,
             'text-color': 'black',
             'text-translate': [0, 15],
             'text-halo-color': '#fff',
