@@ -1,7 +1,6 @@
 {
   "name": "map-box-vue",
   "description": "This is a MVP application for test map-box plugin and test API PinballMap and API OpenSenseMap",
-  "":  "",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -14,7 +13,11 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "vue": "^3.3.4"
+    "axios": "^1.4.0",
+    "mapbox-gl": "^2.15.0",
+    "maplibre-gl": "^3.0.1",
+    "vue": "^3.3.4",
+    "vuex": "^4.0.2"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.2.0",
