@@ -24,20 +24,20 @@ export default {
     },
   },
   actions: {
-    async fetchPinballPoints(context)  {
+    async fetchPinballPoints({ commit })  {
       try {
         const points = await PinballMapHttpService.fetchPointList()
 
-        context.commit('setPoints', { points, field: 'pinballPoints' })
+        commit('setPoints', { points, field: 'pinballPoints' })
       } catch (e) {
         console.log(e)
       }
     },
-    async fetchOpenSensePoints(context) {
+    async fetchOpenSensePoints({ commit }) {
       try {
         const points = await OpenSenseMapHttpService.fetchPointList()
 
-        context.commit('setPoints', { points, field: 'openSensePoints' })
+        commit('setPoints', { points, field: 'openSensePoints' })
       } catch (e) {
         console.log(e)
       }
